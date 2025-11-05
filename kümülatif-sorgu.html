@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Veri Analiz Robotu</title>
+  <style>
+    body {
+      background: #0f0f0f;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 50px;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 18px;
+      margin-top: 20px;
+      cursor: pointer;
+      background-color: #00ffcc;
+      border: none;
+      border-radius: 5px;
+      color: #000;
+    }
+    #wave {
+      display: none;
+      justify-content: center;
+      align-items: flex-end;
+      height: 60px;
+      margin: 30px auto;
+    }
+    .bar {
+      width: 5px;
+      height: 10px;
+      background: #00ffcc;
+      margin: 0 2px;
+      animation: pulse 1s infinite ease-in-out;
+    }
+    .bar:nth-child(2) { animation-delay: 0.1s; }
+    .bar:nth-child(3) { animation-delay: 0.2s; }
+    .bar:nth-child(4) { animation-delay: 0.3s; }
+    .bar:nth-child(5) { animation-delay: 0.4s; }
+
+    @keyframes pulse {
+      0%, 100% { height: 10px; }
+      50% { height: 50px; }
+    }
+
+    #output {
+      margin-top: 30px;
+      font-size: 20px;
+      color: #ccc;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+  <h1>📦 Paketleme Veri Analiz Robotu</h1>
+  <p>“6 Ekim’de kaç kişi çalıştı?” gibi soruları sesli sorabilirsiniz.</p>
+  <button onclick="startRecognition()">🎤 Mikrofonu Başlat</button>
+
+  <div id="wave">
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+  </div>
+
+  <div id="output">⏳ Mikrofon bekleniyor...</div>
+
+  <script>
+    const output = document.getElementById("output");
+    const wave = document.getElementById("wave");
+
+    function sesliYanıtVer(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "tr-TR";
+      speechSynthesis.speak(utterance);
+    }
+
+    function yapayZekaSimulasyonu(soru) {
+      soru = soru.toLowerCase();
+      if (soru.includes("sofra")) return "SOFRA için toplam 31.477 adet ürün üretildi.";
+      if (soru.includes("şekerci") && soru.includes("karabiber")) return "ŞEKERCİ firması 11.828 kilogram karabiber kullandı.";
+      if (soru.includes("6 ekim")) return "6 Ekim'de toplam 15 kişi çalıştı.";
+      if (soru.includes("pul biber") && soru.includes("ekim")) return "Ekim ayında toplam 45.530 kilogram pul biber kullanıldı.";
+      if (soru.includes("kaç farklı firma")) return "Toplam 30 farklı firma ile çalışıldı.";
+      if (soru.includes("toplam kullanılan hammadde")) return "Toplam kullanılan hammadde miktarı 98.546,68 kilogramdır.";
+      if (soru.includes("en çok hangi hammadde")) return "En çok kullanılan hammadde: Pul Biber (45.530 kg).";
+      if (soru.includes("en çok üretim")) return "En çok üretim yapılan firma: SOFRA (31.477 adet).";
+      if (soru.includes("en çok hammadde kullandığım firma")) return "En çok hammadde kullanan firma: ŞEKERCİ (11.828 kg).";
+      if (soru.includes("çalışma süresi nedir")) return "Toplam çalışma süresi 951,75 saattir.";
+      if (soru.includes("5 ekim") && soru.includes("kaç saat")) return "5 Ekim'de toplam 8 saat çalışıldı.";
+      if (soru.includes("fire")) return "Hammadde fire: 5,48 kg, OMK fire: 28 kg, OPP fire: 15,8 kg.";
+      if (soru.includes("en çok fire")) return "En çok fire veren ürün: Tatlı Toz Biber (Toplam fire: 15,9 kg).";
+      if (soru.includes("9 ekim")) return "9 Ekim'de 7 farklı ürün üretildi. Toplam kişi sayısı 18, kullanılan hammadde miktarı 4.530 kg, toplam süre 9 saat.";
+      return "Üzgünüm, bu soruya henüz cevap veremiyorum.";
+    }
+
+    function startRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        output.innerText = "Tarayıcınız sesli komutları desteklemiyor.";
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = "tr-TR";
+      recognition.interimResults = false;
+      recognition.continuous = false;
+
+      recognition.onstart = () => {
+        wave.style.display = "flex";
+        output.innerText = "🎧 Dinleniyor, lütfen konuşun...";
+        sesliYanıtVer("Hoş geldiniz. Ben paketleme bölümü veri analiz robotuyum. Sorunuzu sorabilirsiniz.");
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        output.innerText = `🗣️ Komut: "${transcript}"\n🔍 Cevap aranıyor...`;
+        const cevap = yapayZekaSimulasyonu(transcript);
+        output.innerText += `\n\n✅ Yanıt: ${cevap}`;
+        sesliYanıtVer(cevap);
+      };
+
+      recognition.onerror = (event) => {
+        output.innerText = `❌ Mikrofon hatası: ${event.error}. Lütfen mikrofon izni verdiğinizden emin olun.`;
+        wave.style.display = "none";
+      };
+
+      recognition.onend = () => {
+        wave.style.display = "none";
+      };
+
+      recognition.start();
+    }
+  </script>
+</body>
+</html>
